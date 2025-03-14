@@ -10,12 +10,64 @@ import os
 import Login
 import PPT
 from pathlib import Path
+import json
+import subprocess
 
-ACCOUNT = ""
-PASSWORD = ""
+def School_login(num: int):
+    if num == 0:
+        Login.CGU(driver, ACCOUNT, PASSWORD)
+
+schoool_list = ["長庚大學"]
+PROFILE_PATH = Path("dependence\Profile")
 driver = webdriver.Edge()
 driver.set_window_size(1900, 1080)
-Login.CGU(driver, ACCOUNT, PASSWORD)
+if PROFILE_PATH.exists() == False:
+    terminal_print = "Initialization Setting:\nChoose your school"
+    while True:
+        os.system("cls")
+        print(terminal_print)
+        for n, name in enumerate(schoool_list):
+            print(f"[{n}] {name}")
+        SCHOOL_NUM = int(input("Enter number:"))
+        if schoool_list[SCHOOL_NUM] in schoool_list:
+            break
+        os.system("cls")
+        print("Error Please enter again")
+        time.sleep(3)
+    terminal_print =  terminal_print.split("\n")[0] + "\nEnter account and password"
+    while True:
+        os.system("cls")
+        print(terminal_print)
+        ACCOUNT = input("Account:")
+        PASSWORD = input("Password:")
+        try:
+            School_login(SCHOOL_NUM)
+            break
+        except:
+            os.system("cls")
+            print("Wrong with account or password")
+            time.sleep(3)
+    content = f"{ACCOUNT}\n{PASSWORD}"
+    netrc = "dependence\Login.netrc"
+    with open(netrc, "w") as f:
+        f.write(content)
+    subprocess.run(r"dependence\gpg\gpg.exe --output dependence\Login.gpg --symmetric dependence\Login.netrc")
+    profile = {"school_num": SCHOOL_NUM}
+    profile_path = Path("dependence\Profile")
+    with open(profile_path, 'w') as f:
+        json.dump(profile, f)
+
+with open(PROFILE_PATH, "r") as f:
+    PROFILE = json.load(f)
+    SCHOOL_NUM = PROFILE["school_num"]
+
+gpg_output = subprocess.run(r"dependence\gpg\gpg.exe --decrypt dependence\Login.gpg", capture_output=True, text=True).stdout.strip()
+ACCOUNT, PASSWORD = gpg_output.split("\n")
+
+terminal_print = f"School:{schoool_list[SCHOOL_NUM]}"
+
+School_login(SCHOOL_NUM)
+
 driver.implicitly_wait(10)
 
 def Wait_exists(id: str=None, name:str=None, frame=None):
@@ -115,11 +167,12 @@ while True:
             time.sleep(2)
     img_width, img_height = image.size
     canva_scale = float(f"{img_width/img_height:.1f}")
-    print(canva_scale)
-    if canva_scale == 1.8:
-        canva_size = (13.33, 7.5)
-    elif canva_scale == 1.3:
-        canva_size = (10, 7.5)
+    # print(canva_scale)
+    base_size = 13.33
+    if canva_scale >= 1:
+        canva_size = (base_size, base_size / canva_scale)
+    elif canva_scale <= 1:
+        canva_size = (base_size * canva_scale, base_size)
     pptx = PPT.createPPT(images, canva_size)
     pptx.save(f"output\{chapter_names[choose_chapter_index]}.pptx")
     for image in Path("output\image").iterdir():
