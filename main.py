@@ -17,8 +17,10 @@ import moocs
 def School_login(num: int):
     if num == 0:
         Login.CGU(driver, ACCOUNT, PASSWORD)
+    elif num == 1:
+        Login.CLU(driver, ACCOUNT, PASSWORD)
 
-schoool_list = ["長庚大學"]
+schoool_list = ["長庚大學", "致理科技大學"]
 PROFILE_PATH = Path("dependence\Profile")
 driver = webdriver.Edge()
 driver.set_window_size(1900, 1080)
@@ -53,10 +55,15 @@ if PROFILE_PATH.exists() == False:
     with open(netrc, "w") as f:
         f.write(content)
     subprocess.run(r"dependence\gpg\gpg.exe --output dependence\Login.gpg --symmetric dependence\Login.netrc")
+    Path("dependence\Login.netrc").unlink()
     profile = {"school_num": SCHOOL_NUM}
     profile_path = Path("dependence\Profile")
     with open(profile_path, 'w') as f:
         json.dump(profile, f)
+    os.system("cls")
+    print("Setup Complete\nPlease restart")
+    time.sleep(3)
+    exit()
 
 with open(PROFILE_PATH, "r") as f:
     PROFILE = json.load(f)
