@@ -73,6 +73,7 @@ def Download_handout(driver: webdriver.Edge):
             course_elements[choose_course_index].click()
         except:
             continue
+        print("reading...")
         driver.implicitly_wait(10)
         time.sleep(5)
 
